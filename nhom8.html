@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>CRUD Sinh Viên</title>
+</head>
+<body>
+<h2>Danh sách sinh viên</h2>
+<table border="1">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Tên</th>
+      <th>Lớp</th>
+      <th>email</th>
+    </tr>
+  </thead>
+  <tbody id="data"></tbody>
+</table>
+
+<script>
+const api = "https://69829c289c3efeb892a2c311.mockapi.io/domaincomapi/v1/users/sinhvien";
+
+fetch(api)
+  .then(res => res.json())
+  .then(data => {
+    let html = "";
+    data.forEach(sv => {
+      html += `
+        <tr>
+          <td>${sv.id}</td>
+          <td>${sv.name}</td>
+          <td>${sv.lop}</td>
+          <td>${sv.email}</td>
+        </tr>
+      `;
+    });
+    document.getElementById("data").innerHTML = html;
+  });
+</script>
+</body>
+</html>
