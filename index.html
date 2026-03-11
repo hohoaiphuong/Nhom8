@@ -1,42 +1,43 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>CRUD Sinh Viên</title>
+    <meta charset="UTF-8">
+    <title>Danh sách Sinh viên - Nhóm 8</title>
 </head>
 <body>
-<h2>Danh sách sinh viên</h2>
-<table border="1">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Tên</th>
-      <th>Lớp</th>
-      <th>email</th>
-    </tr>
-  </thead>
-  <tbody id="data"></tbody>
-</table>
+    <h2>Danh sách Sinh viên (Nhóm 8)</h2>
+    <table border="1" cellpadding="5" style="border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Họ và Tên</th>
+            </tr>
+        </thead>
+        <tbody id="du-lieu">
+            </tbody>
+    </table>
 
-<script>
-const api = "https://69829c289c3efeb892a2c311.mockapi.io/domaincomapi/v1/users/sinhvien";
+    <script>
+        // Link API Backend Laravel của bạn
+        const API = "https://nhom8-backend-laravel.onrender.com/api/users";
 
-fetch(api)
-  .then(res => res.json())
-  .then(data => {
-    let html = "";
-    data.forEach(sv => {
-      html += `
-        <tr>
-          <td>${sv.id}</td>
-          <td>${sv.name}</td>
-          <td>${sv.lop}</td>
-          <td>${sv.email}</td>
-        </tr>
-      `;
-    });
-    document.getElementById("data").innerHTML = html;
-  });
-</script>
+        // Gọi API lấy dữ liệu
+        fetch(API)
+            .then(result => result.json())
+            .then(data => {
+                let html = "";
+                data.forEach(user => {
+                    html += `
+                        <tr>
+                            <td style="text-align: center;">${user.id}</td>
+                            <td>${user.name}</td>
+                        </tr>
+                    `;
+                });
+                // In dữ liệu ra bảng
+                document.getElementById("du-lieu").innerHTML = html;
+            })
+            .catch(error => console.error("Lỗi kết nối:", error));
+    </script>
 </body>
 </html>
