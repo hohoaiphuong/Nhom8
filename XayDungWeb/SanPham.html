@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sản Phẩm - Web Bán Sách</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #5B7C99 0%, #3D5A6C 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
+        }
+
+        .nav {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+
+        .nav a:hover {
+            opacity: 0.8;
+        }
+
+        /* Main Content */
+        main {
+            padding: 50px 0;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 40px;
+            color: #2c3e50;
+            text-align: center;
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, #5B7C99, #3D5A6C);
+            border-radius: 2px;
+        }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: 1px solid #ecf0f1;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 280px;
+            background: linear-gradient(135deg, #ecf0f1 0%, #f8f9fa 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            font-size: 80px;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .product-card:hover .product-image img {
+            transform: scale(1.08);
+        }
+
+        .product-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #ff6b6b;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .product-info {
+            padding: 24px;
+        }
+
+        .product-title {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .product-author {
+            font-size: 13px;
+            color: #7f8c8d;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .product-price {
+            font-size: 22px;
+            color: #5B7C99;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 13px;
+        }
+
+        .btn-wishlist {
+            background-color: #f0f4f8;
+            color: #5B7C99;
+            border: 1px solid #5B7C99;
+        }
+
+        .btn-wishlist:hover {
+            background-color: #5B7C99;
+            color: white;
+        }
+
+        .btn-add-cart {
+            background-color: #5B7C99;
+            color: white;
+            border: 1px solid #5B7C99;
+        }
+
+        .btn-add-cart:hover {
+            background-color: #3D5A6C;
+            border-color: #3D5A6C;
+        }
+
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 60px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav {
+                gap: 15px;
+                font-size: 14px;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 20px;
+            }
+
+            .product-image {
+                height: 220px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">📚 Cửa Hàng Sách</div>
+                <nav class="nav">
+                    <a href="#home">Trang Chủ</a>
+                    <a href="#products">Sản Phẩm</a>
+                    <a href="#contact">Liên Hệ</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <h1>Sản Phẩm Nổi Bật</h1>
+        
+        <div class="products-grid">
+            <!-- Sách 1 -->
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="img/java.jpg" alt="Java Programming">
+                    <span class="product-badge">-20%</span>
+                </div>
+                <div class="product-info">
+                    <div class="product-title">Java Programming</div>
+                    <div class="product-author">Tác giả: Herbert Schildt</div>
+                    <div class="product-price">250,000đ</div>
+                    <div class="product-actions">
+                        <button class="btn btn-wishlist">♡ Yêu thích</button>
+                        <button class="btn btn-add-cart">🛒 Thêm vào giỏ</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sách 2 -->
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="img/reacts.jpg" alt="React.js Guide">
+                    <span class="product-badge">-15%</span>
+                </div>
+                <div class="product-info">
+                    <div class="product-title">React.js Guide</div>
+                    <div class="product-author">Tác giả: Dan Abramov</div>
+                    <div class="product-price">300,000đ</div>
+                    <div class="product-actions">
+                        <button class="btn btn-wishlist">♡ Yêu thích</button>
+                        <button class="btn btn-add-cart">🛒 Thêm vào giỏ</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sách 3 -->
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="img/css.jpg" alt="CSS Complete">
+                    <span class="product-badge">-10%</span>
+                </div>
+                <div class="product-info">
+                    <div class="product-title">CSS Complete</div>
+                    <div class="product-author">Tác giả: Rachel Andrew</div>
+                    <div class="product-price">200,000đ</div>
+                    <div class="product-actions">
+                        <button class="btn btn-wishlist">♡ Yêu thích</button>
+                        <button class="btn btn-add-cart">🛒 Thêm vào giỏ</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sách 4 -->
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="img/sql.jpg" alt="SQL Master">
+                </div>
+                <div class="product-info">
+                    <div class="product-title">SQL Master</div>
+                    <div class="product-author">Tác giả: Marko Grobelnik</div>
+                    <div class="product-price">280,000đ</div>
+                    <div class="product-actions">
+                        <button class="btn btn-wishlist">♡ Yêu thích</button>
+                        <button class="btn btn-add-cart">🛒 Thêm vào giỏ</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sách 5 -->
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="img/design.jpg" alt="Design Thinking">
+                    <span class="product-badge">-25%</span>
+                </div>
+                <div class="product-info">
+                    <div class="product-title">Design Thinking</div>
+                    <div class="product-author">Tác giả: Tim Brown</div>
+                    <div class="product-price">320,000đ</div>
+                    <div class="product-actions">
+                        <button class="btn btn-wishlist">♡ Yêu thích</button>
+                        <button class="btn btn-add-cart">🛒 Thêm vào giỏ</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sách 6 -->
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="img/images.jpg" alt="Image Processing">
+                </div>
+                <div class="product-info">
+                    <div class="product-title">Image Processing</div>
+                    <div class="product-author">Tác giả: Rafael C. Gonzalez</div>
+                    <div class="product-price">380,000đ</div>
+                    <div class="product-actions">
+                        <button class="btn btn-wishlist">♡ Yêu thích</button>
+                        <button class="btn btn-add-cart">🛒 Thêm vào giỏ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 Cửa Hàng Sách. Tất cả quyền được bảo lưu.</p>
+    </footer>
+</body>
+</html>
