@@ -2,42 +2,473 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Danh sách Sinh viên - Nhóm 8</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Bán Sách & Danh sách Sinh Viên</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Thêm chút CSS cho bảng sinh viên đẹp hơn cho hợp với web của Fat */
+        .student-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .student-table th, .student-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .student-table th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <h2>Danh sách Sinh viên (Nhóm 8)</h2>
-    <table border="1" cellpadding="5" style="border-collapse: collapse;">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Họ và Tên</th>
-            </tr>
-        </thead>
-        <tbody id="du-lieu">
-            </tbody>
-    </table>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-auth-column">
+                    <div class="logo">
+                        <img src="img/logo.jpg" alt="Logo Cửa Hàng Sách" class="logo-img">
+                    </div>
+                    <div class="auth-section">
+                        <button class="btn-login" onclick="login()">Đăng nhập</button>
+                        <button class="btn-register" onclick="register()">Đăng ký</button>
+                        <button class="btn-logout" onclick="logout()" style="display: none;">Đăng xuất</button>
+                    </div>
+                </div>
+                
+                <div class="search-box">
+                    <form action="/search" method="get">
+                        <input type="text" name="query" placeholder="Tìm kiếm sách..." class="search-input">
+                        <button type="submit" class="search-btn">Tìm kiếm</button>
+                    </form>
+                </div>
+                
+                <div class="icons-section">
+                    <div class="icon-item">
+                        <button class="icon-btn" onclick="showWishlist()" title="Danh sách yêu thích">
+                            ♥ Yêu thích
+                            <span class="badge" id="wishlist-count">0</span>
+                        </button>
+                    </div>
+                    <div class="icon-item">
+                        <button class="icon-btn" onclick="showCart()" title="Giỏ hàng">
+                            🛒 Giỏ hàng
+                            <span class="badge" id="cart-count">0</span>
+                        </button>
+                    </div>
+                    <div class="icon-item">
+                        <button class="icon-btn" onclick="showOrders()" title="Lịch sử đơn hàng">
+                            📋 Đơn hàng
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        
+        <section style="margin-top: 30px; margin-bottom: 50px;">
+            <h2>Danh sách Sinh viên (Nhóm 8)</h2>
+            <table class="student-table">
+                <thead>
+                    <tr>
+                        <th style="width: 100px; text-align: center;">ID</th>
+                        <th>Họ và Tên</th>
+                    </tr>
+                </thead>
+                <tbody id="du-lieu">
+                    </tbody>
+            </table>
+        </section>
+        <hr style="margin-bottom: 30px; border: 0; border-top: 1px solid #eee;">
+        <h2>Sản phẩm nổi bật</h2>
+        <div class="products-grid" id="products">
+            </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 Cửa Hàng Sách - Nhóm 8. All rights reserved.</p>
+    </footer>
 
     <script>
-        // Link API Backend Laravel của bạn
-        const API = "https://nhom8-backend-laravel.onrender.com/api/users";
-
-        // Gọi API lấy dữ liệu
-        fetch(API)
-            .then(result => result.json())
-            .then(data => {
-                let html = "";
-                data.forEach(user => {
-                    html += `
-                        <tr>
-                            <td style="text-align: center;">${user.id}</td>
-                            <td>${user.name}</td>
-                        </tr>
-                    `;
+        // ==========================================
+        // 1. CODE GỌI API CỦA BẠN (PHƯƠNG)
+        // ==========================================
+        function loadStudentData() {
+            const API = "https://nhom8-backend-laravel.onrender.com/api/users";
+            fetch(API)
+                .then(result => result.json())
+                .then(data => {
+                    let html = "";
+                    data.forEach(user => {
+                        html += `
+                            <tr>
+                                <td style="text-align: center;">${user.id}</td>
+                                <td>${user.name}</td>
+                            </tr>
+                        `;
+                    });
+                    document.getElementById("du-lieu").innerHTML = html;
+                })
+                .catch(error => {
+                    console.error("Lỗi kết nối:", error);
+                    document.getElementById("du-lieu").innerHTML = '<tr><td colspan="2" style="text-align:center; color:red;">Lỗi kết nối API Backend</td></tr>';
                 });
-                // In dữ liệu ra bảng
-                document.getElementById("du-lieu").innerHTML = html;
-            })
-            .catch(error => console.error("Lỗi kết nối:", error));
+        }
+
+        // ==========================================
+        // 2. CODE XỬ LÝ CỬA HÀNG CỦA FAT
+        // ==========================================
+        const possibleBookFiles = [
+            'java.jpg', 'css.jpg', 'reacts.jpg', 'sql.jpg', 'design.jpg', 'images.jpg',
+            'book1.jpg', 'book2.jpg', 'book3.jpg', 'book4.jpg', 'book5.jpg', 'book6.jpg',
+            'book7.jpg', 'book8.jpg', 'book9.jpg', 'book10.jpg', 'book11.jpg', 'book12.jpg',
+            'book.jpg', 'sach1.jpg', 'sach2.jpg', 'sach3.jpg', 'sach4.jpg', 'sach5.jpg',
+            'book1.png', 'book2.png', 'book3.png', 'book4.png', 'book5.png', 'book6.png'
+        ];
+
+        let books = [];
+
+        function loadBooksFromImages() {
+            books = [];
+            const promises = possibleBookFiles.map((filename) => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = function() {
+                        books.push({
+                            id: books.length + 1,
+                            title: filename.replace(/\.[^/.]+$/, ''),
+                            author: 'Tác giả',
+                            price: '100,000đ',
+                            image: 'img/' + filename
+                        });
+                        resolve();
+                    };
+                    img.onerror = function() {
+                        resolve();
+                    };
+                    img.src = 'img/' + filename;
+                });
+            });
+
+            Promise.all(promises).then(() => {
+                if (books.length === 0) {
+                    document.getElementById('products').innerHTML = '<p style="text-align: center; padding: 40px; color: #999; grid-column: 1/-1;">Không có sách nào. Vui lòng thêm ảnh sách vào thư mục img/</p>';
+                } else {
+                    displayProducts();
+                }
+            });
+        }
+
+        // Lấy giỏ hàng từ localStorage
+        function getCart() {
+            const cart = localStorage.getItem('cart');
+            return cart ? JSON.parse(cart) : [];
+        }
+
+        function saveCart(cart) {
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartBadge();
+        }
+
+        function getWishlist() {
+            const wishlist = localStorage.getItem('wishlist');
+            return wishlist ? JSON.parse(wishlist) : [];
+        }
+
+        function saveWishlist(wishlist) {
+            localStorage.setItem('wishlist', JSON.stringify(wishlist));
+            updateWishlistBadge();
+        }
+
+        function displayProducts() {
+            const productsDiv = document.getElementById('products');
+            productsDiv.innerHTML = books.map(book => `
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="${book.image}" alt="${book.title}" onerror="this.src='img/placeholder.jpg'">
+                        <button class="btn-wishlist" onclick="toggleWishlist(${book.id}, '${book.title}')" title="Thêm vào yêu thích">
+                            <span class="heart" id="heart-${book.id}">♡</span>
+                        </button>
+                    </div>
+                    <div class="product-info">
+                        <h3>${book.title}</h3>
+                        <p class="author">Tác giả: ${book.author}</p>
+                        <p class="price">${book.price}</p>
+                        <button class="btn-add-cart" onclick="addToCart(${book.id}, '${book.title}', '${book.price}')">Thêm vào giỏ</button>
+                    </div>
+                </div>
+            `).join('');
+            updateWishlistUI();
+        }
+
+        function addToCart(id, title, price) {
+            const cart = getCart();
+            const existingItem = cart.find(item => item.id === id);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ id, title, price, quantity: 1 });
+            }
+            
+            saveCart(cart);
+            alert(`✓ Đã thêm "${title}" vào giỏ hàng!`);
+        }
+
+        function toggleWishlist(id, title) {
+            let wishlist = getWishlist();
+            const index = wishlist.findIndex(item => item.id === id);
+            
+            if (index > -1) {
+                wishlist.splice(index, 1);
+                alert(`✓ Đã xóa "${title}" khỏi danh sách yêu thích!`);
+            } else {
+                wishlist.push({ id, title });
+                alert(`♥ Đã thêm "${title}" vào danh sách yêu thích!`);
+            }
+            
+            saveWishlist(wishlist);
+            updateWishlistUI();
+        }
+
+        function updateWishlistUI() {
+            const wishlist = getWishlist();
+            books.forEach(book => {
+                const heart = document.getElementById(`heart-${book.id}`);
+                if (heart) {
+                    const isLiked = wishlist.some(item => item.id === book.id);
+                    heart.textContent = isLiked ? '♥' : '♡';
+                    heart.style.color = isLiked ? '#5B7C99' : '#ccc';
+                }
+            });
+        }
+
+        function updateCartBadge() {
+            const cart = getCart();
+            const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cart-count').textContent = total;
+        }
+
+        function updateWishlistBadge() {
+            const wishlist = getWishlist();
+            document.getElementById('wishlist-count').textContent = wishlist.length;
+        }
+
+        function showCart() {
+            const cart = getCart();
+            if (cart.length === 0) {
+                alert('Giỏ hàng trống!');
+                return;
+            }
+            
+            let cartText = 'GIỎ HÀNG:\n\n';
+            let total = 0;
+            cart.forEach(item => {
+                const priceNum = parseInt(item.price.replace(/,|đ/g, ''));
+                const itemTotal = priceNum * item.quantity;
+                total += itemTotal;
+                cartText += `${item.title}\nSố lượng: ${item.quantity} x ${item.price}\n\n`;
+            });
+            cartText += `\n${'='.repeat(40)}\nTổng: ${total.toLocaleString('vi-VN')}đ`;
+            
+            const result = confirm(cartText + '\n\n\nBấm OK để thanh toán');
+            if (result) {
+                processPayment(total);
+            }
+        }
+
+        function processPayment(total) {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                alert('Vui lòng đăng nhập trước khi thanh toán!');
+                login();
+                return;
+            }
+            
+            const paymentMethod = prompt('Chọn phương thức thanh toán:\n1. Thẻ tín dụng\n2. Ví điện tử\n3. Chuyển khoản\n\nNhập 1, 2 hoặc 3:');
+            
+            if (!paymentMethod || !['1', '2', '3'].includes(paymentMethod)) {
+                alert('Phương thức thanh toán không hợp lệ!');
+                return;
+            }
+            
+            const methods = {
+                '1': 'Thẻ tín dụng',
+                '2': 'Ví điện tử',
+                '3': 'Chuyển khoản'
+            };
+            
+            alert(`✓ Thanh toán thành công!\n\nNgười dùng: ${user}\nSố tiền: ${total.toLocaleString('vi-VN')}đ\nPhương thức: ${methods[paymentMethod]}\n\nCảm ơn bạn đã mua hàng!`);
+            
+            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            orders.push({
+                id: Date.now(),
+                user: user,
+                amount: total,
+                method: methods[paymentMethod],
+                date: new Date().toLocaleString('vi-VN'),
+                items: getCart()
+            });
+            localStorage.setItem('orders', JSON.stringify(orders));
+            
+            localStorage.removeItem('cart');
+            updateCartBadge();
+        }
+
+        function showWishlist() {
+            const wishlist = getWishlist();
+            if (wishlist.length === 0) {
+                alert('Danh sách yêu thích trống!');
+                return;
+            }
+            
+            let wishlistText = 'DANH SÁCH YÊU THÍCH:\n\n';
+            wishlist.forEach((item, index) => {
+                wishlistText += `${index + 1}. ${item.title}\n`;
+            });
+            alert(wishlistText);
+        }
+
+        function showOrders() {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                alert('Vui lòng đăng nhập để xem lịch sử đơn hàng!');
+                return;
+            }
+            
+            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            const userOrders = orders.filter(order => order.user === user);
+            
+            if (userOrders.length === 0) {
+                alert('Bạn chưa có đơn hàng nào!');
+                return;
+            }
+            
+            let ordersText = `LỊCH SỬ ĐƠN HÀNG (${user}):\n\n`;
+            userOrders.forEach((order, index) => {
+                ordersText += `Đơn #${index + 1}\nNgày: ${order.date}\nSố tiền: ${order.amount.toLocaleString('vi-VN')}đ\nPhương thức: ${order.method}\nSố sản phẩm: ${order.items.length}\n${'─'.repeat(40)}\n\n`;
+            });
+            
+            alert(ordersText);
+        }
+
+        function register() {
+            const username = prompt("Nhập tên đăng ký:");
+            if (!username || username.trim() === '') {
+                alert('Tên đăng ký không được để trống!');
+                return;
+            }
+            
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            if (users[username]) {
+                alert('Tên đăng ký đã tồn tại! Vui lòng chọn tên khác.');
+                return;
+            }
+            
+            const password = prompt("Nhập mật khẩu:");
+            if (!password || password.trim() === '') {
+                alert('Mật khẩu không được để trống!');
+                return;
+            }
+            
+            const confirmPassword = prompt("Nhập lại mật khẩu:");
+            if (password !== confirmPassword) {
+                alert('Mật khẩu không khớp! Vui lòng thử lại.');
+                return;
+            }
+            
+            users[username] = password;
+            localStorage.setItem('users', JSON.stringify(users));
+            alert('✓ Đăng ký thành công! Bạn có thể đăng nhập ngay bây giờ.');
+        }
+
+        function login() {
+            const username = prompt("Nhập tên đăng nhập:");
+            if (!username || username.trim() === '') {
+                alert('Tên đăng nhập không được để trống!');
+                return;
+            }
+            
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            if (!users[username]) {
+                const register = confirm('Tài khoản không tồn tại! Bạn có muốn đăng ký không?');
+                if (register) {
+                    registerNewUser(username);
+                }
+                return;
+            }
+            
+            const password = prompt("Nhập mật khẩu:");
+            if (!password) {
+                return;
+            }
+            
+            if (users[username] !== password) {
+                alert('Mật khẩu không chính xác!');
+                return;
+            }
+            
+            localStorage.setItem('user', username);
+            updateAuthUI();
+            alert("✓ Đăng nhập thành công! Chào mừng " + username);
+        }
+
+        function registerNewUser(suggestedUsername) {
+            const username = prompt("Nhập tên đăng ký:", suggestedUsername);
+            if (!username || username.trim() === '') return;
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            if (users[username]) return alert('Tên đăng ký đã tồn tại!');
+            const password = prompt("Nhập mật khẩu:");
+            if (!password || password.trim() === '') return;
+            if (password !== prompt("Nhập lại mật khẩu:")) return alert('Mật khẩu không khớp!');
+            
+            users[username] = password;
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('user', username);
+            updateAuthUI();
+            alert('✓ Đăng ký thành công! Chào mừng ' + username);
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            updateAuthUI();
+            alert("✓ Đăng xuất thành công!");
+        }
+
+        function updateAuthUI() {
+            const user = localStorage.getItem('user');
+            const loginBtn = document.querySelector('.btn-login');
+            const registerBtn = document.querySelector('.btn-register');
+            const logoutBtn = document.querySelector('.btn-logout');
+            
+            if (user) {
+                loginBtn.style.display = 'none';
+                registerBtn.style.display = 'none';
+                logoutBtn.style.display = 'block';
+                logoutBtn.textContent = `Đăng xuất (${user})`;
+            } else {
+                loginBtn.style.display = 'block';
+                registerBtn.style.display = 'block';
+                logoutBtn.style.display = 'none';
+            }
+        }
+
+        // ==========================================
+        // 3. KHỞI CHẠY TẤT CẢ KHI TẢI TRANG
+        // ==========================================
+        window.addEventListener('load', function() {
+            loadStudentData();     // Chạy API Sinh viên của bạn
+            loadBooksFromImages(); // Chạy load Sách của Fat
+            updateAuthUI();
+            updateCartBadge();
+            updateWishlistBadge();
+        });
     </script>
 </body>
 </html>
