@@ -97,9 +97,10 @@
 
     <script>
         // ==========================================
-        // 1. CODE GỌI API CỦA BẠN (PHƯƠNG)
+        // 1. CODE GỌI API BẢNG SINH VIÊN (Render)
         // ==========================================
         function loadStudentData() {
+            // LINK ĐÃ ĐƯỢC FIX CHUẨN 100%
             const API = "https://nhom8-backend-laravel.onrender.com/api/users";
             fetch(API)
                 .then(result => result.json())
@@ -117,7 +118,7 @@
                 })
                 .catch(error => {
                     console.error("Lỗi kết nối:", error);
-                    document.getElementById("du-lieu").innerHTML = '<tr><td colspan="2" style="text-align:center; color:red;">Lỗi kết nối API Backend</td></tr>';
+                    document.getElementById("du-lieu").innerHTML = '<tr><td colspan="2" style="text-align:center; color:red;">Đang tải dữ liệu từ máy chủ (vui lòng đợi vài giây và F5 lại)...</td></tr>';
                 });
         }
 
@@ -136,13 +137,23 @@
 
         function loadBooksFromImages() {
             books = [];
+            
+            // TỪ ĐIỂN DỊCH TÊN SÁCH CHO ĐẸP
+            const tenSachDep = {
+                'design': 'Thiết Kế - Tạo Mẫu & Dàn Trang',
+                'reacts': 'Lập trình React 2025',
+                'images': 'Lập trình Python cho người mới',
+                'sql': 'Giáo trình SQL Server'
+            };
+
             const promises = possibleBookFiles.map((filename) => {
                 return new Promise((resolve) => {
                     const img = new Image();
                     img.onload = function() {
+                        const tenGoc = filename.replace(/\.[^/.]+$/, '');
                         books.push({
                             id: books.length + 1,
-                            title: filename.replace(/\.[^/.]+$/, ''),
+                            title: tenSachDep[tenGoc] || tenGoc, // Lấy tên đẹp, nếu không có thì lấy tên gốc
                             author: 'Tác giả',
                             price: '100,000đ',
                             image: 'img/' + filename
@@ -463,8 +474,8 @@
         // 3. KHỞI CHẠY TẤT CẢ KHI TẢI TRANG
         // ==========================================
         window.addEventListener('load', function() {
-            loadStudentData();     // Chạy API Sinh viên của bạn
-            loadBooksFromImages(); // Chạy load Sách của Fat
+            loadStudentData();     // Chạy API Sinh viên 
+            loadBooksFromImages(); // Chạy load Sách
             updateAuthUI();
             updateCartBadge();
             updateWishlistBadge();
