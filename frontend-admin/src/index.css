@@ -1,0 +1,28 @@
+/* 1. Import bộ thư viện Tailwind v4 */
+@import "tailwindcss";
+
+/* 2. Định nghĩa các style cơ bản cho Body */
+/* Lưu ý: Trong v4, bạn không nhất thiết phải bọc trong @layer base nếu viết đơn giản */
+body {
+  @apply bg-slate-950 text-slate-100;
+  margin: 0;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+/* 3. Tùy chỉnh thanh cuộn (Scrollbar) chuẩn Dark Mode */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #6b7180; /* Tương đương bg-slate-900 */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #949eab; /* Tương đương bg-slate-700 */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569; /* Tương đương bg-slate-600 */
+}
