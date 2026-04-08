@@ -43,20 +43,24 @@ const Categories = () => {
     setIsModalOpen(true);
   };
 
-  // 3. Thêm hoặc Cập nhật
+ // 3. Thêm hoặc Cập nhật
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingCategory) {
-        await axios.put(`${API_URL}/${editingCategory.id}`, formData);
+        // Ép kiểu ID về số nguyên để loại bỏ lỗi dính chuỗi ":1"
+        const cleanId = parseInt(editingCategory.id);
+        
+        await axios.put(`${API_URL}/${cleanId}`, formData);
         toast.success("Cập nhật danh mục thành công!");
       } else {
         await axios.post(API_URL, formData);
         toast.success("Đã thêm danh mục mới!");
       }
       setIsModalOpen(false);
-      fetchCategories();
+      fetchCategories(); // Tải lại danh sách
     } catch (error) {
+      console.error("Lỗi API:", error.response?.data);
       toast.error("Lỗi dữ liệu, vui lòng kiểm tra lại!");
     }
   };
@@ -65,11 +69,12 @@ const Categories = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
       try {
-        await axios.delete(`${API_URL}/${id}`);
+        const cleanId = parseInt(id);
+        await axios.delete(`${API_URL}/${cleanId}`);
         toast.success("Đã xóa danh mục!");
         fetchCategories();
       } catch (error) {
-        toast.error("Không thể xóa danh mục đang có sách!");
+        toast.error("Lỗi: Không thể xóa danh mục này!");
       }
     }
   };

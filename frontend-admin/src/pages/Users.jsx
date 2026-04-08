@@ -44,11 +44,13 @@ const UsersPage = () => {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingUser) {
-        await axios.put(`${API_URL}/${editingUser.id}`, formData);
+        // Sửa lỗi ở đây: Ép kiểu ID sang số nguyên
+        const userId = parseInt(editingUser.id); 
+        await axios.put(`${API_URL}/${userId}`, formData);
         toast.success("Cập nhật tài khoản thành công!");
       } else {
         await axios.post(API_URL, formData);
@@ -57,14 +59,17 @@ const UsersPage = () => {
       setIsModalOpen(false);
       fetchUsers();
     } catch (error) {
-      toast.error("Lỗi: Email đã tồn tại hoặc dữ liệu không hợp lệ!");
+      console.error("Lỗi Backend:", error.response?.data);
+      toast.error("Lỗi: Dữ liệu không hợp lệ hoặc Email đã tồn tại!");
     }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm("Xác nhận xóa tài khoản này khỏi hệ thống?")) {
       try {
-        await axios.delete(`${API_URL}/${id}`);
+        // Sửa lỗi ở đây: Ép kiểu ID sang số nguyên
+        const userId = parseInt(id);
+        await axios.delete(`${API_URL}/${userId}`);
         toast.success("Đã xóa người dùng!");
         fetchUsers();
       } catch (error) {
