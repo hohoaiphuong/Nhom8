@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Heart, ShoppingCart, Share2, Star } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { toast } from 'react-toastify';
+import axios from 'axios'; // Đã thêm axios
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -12,37 +13,28 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
 
+  // Link API lấy từ .env hoặc dùng trực tiếp link Render của nhóm
+  const API_URL = import.meta.env.VITE_API_URL || 'https://nhom8-backend-laravel.onrender.com/api';
+
   useEffect(() => {
-    // Mock data - Replace with API call
-    const mockProduct = {
-      id: id,
-      title: 'Những quyển sách hay nhất',
-      author: 'Tác giả nổi tiếng',
-      publisher: 'Nhà xuất bản ABC',
-      publishYear: 2023,
-      price: 89000,
-      originalPrice: 120000,
-      discount: 25,
-      category: 'Sách hay',
-      image: 'https://via.placeholder.com/500x600?text=Book',
-      rating: 4.5,
-      reviews: 120,
-      stock: 50,
-      description: `Đây là một cuốn sách tuyệt vời với nội dung hấp dẫn và bổ ích. 
-      Tác giả đã viết nên những câu chuyện thú vị, truyền cảm hứng cho bạn đọc.
-      Sách này phù hợp cho mọi độ tuổi và là lựa chọn hoàn hảo cho người yêu thích đọc.`,
-      details: {
-        pages: 320,
-        language: 'Tiếng Việt',
-        format: 'Bìa cứng',
-        weight: '500g',
-        dimensions: '20 x 15 cm',
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        // Gọi API lấy chi tiết sách theo ID
+        const response = await axios.get(`${API_URL}/books/${id}`);
+        setProduct(response.data);
+      } catch (error) {
+        console.error('Lỗi Backend:', error);
+        toast.error('Không thể tải thông tin sách!');
+      } finally {
+        setLoading(false);
       }
     };
 
-    setProduct(mockProduct);
-    setLoading(false);
-  }, [id]);
+    if (id) {
+      fetchProduct();
+    }
+  }, [id, API_URL]);
 
   const handleAddToCart = () => {
     if (quantity > 0 && product) {
@@ -50,11 +42,18 @@ export default function ProductDetail() {
         id: product.id,
         title: product.title,
         price: product.price,
-        image: product.image,
+        image: getImageUrl(product.image),
         quantity: quantity,
       });
       toast.success(`Đã thêm ${quantity} cuốn vào giỏ hàng!`);
     }
+  };
+
+  // Hàm xử lý ảnh: Nếu là link mạng thì giữ nguyên, nếu là file thì cộng thêm link server
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return 'https://via.placeholder.com/500x600?text=No+Image';
+    if (imagePath.startsWith('http')) return imagePath;
+    return `https://nhom8-backend-laravel.onrender.com/storage/${imagePath}`;
   };
 
   if (loading) {
@@ -64,7 +63,7 @@ export default function ProductDetail() {
   }
 
   if (!product) {
-    return <div className="text-center py-12"><p>Không tìm thấy sách</p></div>;
+    return <div className="text-center py-12"><p>Không tìm thấy sách hoặc lỗi máy chủ.</p></div>;
   }
 
   return (
@@ -72,30 +71,29 @@ export default function ProductDetail() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <div className="text-sm text-gray-600 mb-8">
-          <span>Trang chủ / {product.category} / {product.title}</span>
+          <span>Trang chủ / {product.category_name || 'Sách'} / {product.title}</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white rounded-lg shadow-md p-8">
           {/* Left - Product Image */}
           <div className="flex items-center justify-center bg-gray-100 rounded-lg p-8">
             <img
-              src={product.image}
+              src={getImageUrl(product.image)}
               alt={product.title}
-              className="max-w-full max-h-96 object-cover"
+              className="max-w-full max-h-96 object-contain"
             />
           </div>
 
           {/* Right - Product Info */}
           <div>
-            {/* Title & Category */}
-            <p className="text-sm text-gray-500 mb-2">{product.category}</p>
+            <p className="text-sm text-gray-500 mb-2">{product.category_name || 'Sách hay'}</p>
             <h1 className="text-3xl font-bold text-gray-800 mb-4">{product.title}</h1>
 
             {/* Author & Details */}
             <div className="border-b border-gray-200 pb-4 mb-4">
-              <p className="text-gray-600 mb-2">Tác giả: <span className="font-semibold">{product.author}</span></p>
-              <p className="text-gray-600 mb-2">Nhà xuất bản: <span className="font-semibold">{product.publisher}</span></p>
-              <p className="text-gray-600">Năm xuất bản: <span className="font-semibold">{product.publishYear}</span></p>
+              <p className="text-gray-600 mb-2">Tác giả: <span className="font-semibold">{product.author || 'Đang cập nhật'}</span></p>
+              <p className="text-gray-600 mb-2">Nhà xuất bản: <span className="font-semibold">{product.publisher || 'NXB Trẻ'}</span></p>
+              <p className="text-gray-600">Năm xuất bản: <span className="font-semibold">{product.publishYear || '2024'}</span></p>
             </div>
 
             {/* Rating */}
@@ -105,22 +103,24 @@ export default function ProductDetail() {
                   <Star
                     key={i}
                     size={20}
-                    className={i < Math.floor(product.rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
+                    className={i < 4 ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
                   />
                 ))}
               </div>
-              <span className="text-lg font-semibold">{product.rating}</span>
-              <span className="text-gray-600">({product.reviews} đánh giá)</span>
+              <span className="text-lg font-semibold">4.0</span>
+              <span className="text-gray-600">(Mặc định)</span>
             </div>
 
             {/* Price */}
             <div className="mb-6 bg-gray-100 p-4 rounded-lg">
               <div className="flex items-center gap-4 mb-2">
-                <span className="text-4xl font-bold text-pink-600">{product.price.toLocaleString('vi-VN')}đ</span>
-                <span className="text-xl text-gray-400 line-through">{product.originalPrice.toLocaleString('vi-VN')}đ</span>
+                <span className="text-4xl font-bold text-pink-600">{Number(product.price).toLocaleString('vi-VN')}đ</span>
+                {product.originalPrice && (
+                    <span className="text-xl text-gray-400 line-through">{Number(product.originalPrice).toLocaleString('vi-VN')}đ</span>
+                )}
               </div>
               <span className="inline-block bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                Giảm {product.discount}%
+                Giảm {product.discount || 0}%
               </span>
             </div>
 
@@ -151,7 +151,6 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {/* Add to Cart Button */}
               <button
                 onClick={handleAddToCart}
                 disabled={product.stock === 0}
@@ -160,25 +159,6 @@ export default function ProductDetail() {
                 <ShoppingCart size={20} />
                 Thêm vào giỏ hàng
               </button>
-
-              {/* Wishlist & Share */}
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setIsWishlisted(!isWishlisted)}
-                  className={`flex-1 py-3 rounded-lg border-2 transition-colors flex items-center justify-center gap-2 ${
-                    isWishlisted
-                      ? 'bg-red-50 border-red-600 text-red-600'
-                      : 'border-gray-300 text-gray-600 hover:border-red-600'
-                  }`}
-                >
-                  <Heart size={20} fill={isWishlisted ? 'currentColor' : 'none'} />
-                  Yêu thích
-                </button>
-                <button className="flex-1 py-3 rounded-lg border-2 border-gray-300 hover:border-gray-600 text-gray-600 hover:text-gray-800 transition-colors flex items-center justify-center gap-2">
-                  <Share2 size={20} />
-                  Chia sẻ
-                </button>
-              </div>
             </div>
 
             {/* Additional Info */}
@@ -193,22 +173,12 @@ export default function ProductDetail() {
           </div>
         </div>
 
-        {/* Description & Details Tabs */}
+        {/* Description */}
         <div className="mt-8 bg-white rounded-lg shadow-md p-8">
-          <div className="tabs">
-            <h2 className="text-2xl font-bold mb-6">Mô tả sản phẩm</h2>
-            <p className="text-gray-700 leading-relaxed mb-6">{product.description}</p>
-
-            <h3 className="text-xl font-bold mb-4">Chi tiết sản phẩm</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {Object.entries(product.details).map(([key, value]) => (
-                <div key={key} className="border-b pb-2">
-                  <p className="text-gray-600 text-sm">{key.charAt(0).toUpperCase() + key.slice(1)}</p>
-                  <p className="font-semibold text-gray-800">{value}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          <h2 className="text-2xl font-bold mb-6">Mô tả sản phẩm</h2>
+          <p className="text-gray-700 leading-relaxed mb-6">
+            {product.description || 'Chưa có mô tả cụ thể cho cuốn sách này.'}
+          </p>
         </div>
       </div>
     </div>

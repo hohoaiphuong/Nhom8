@@ -17,6 +17,10 @@ import Search from './pages/Search';
 import About from './pages/About';
 import Contact from './pages/Contact';
 
+// 👇 BỔ SUNG: Import 2 trang mới của Nhóm 8
+import Login from './pages/Login';
+import Register from './pages/Register';
+
 export default function App() {
   return (
     <CartProvider>
@@ -37,6 +41,10 @@ export default function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/wishlist" element={<Cart />} />
               <Route path="/sale" element={<Shop />} />
+
+              {/* 👇 BỔ SUNG: Thêm Route cho Đăng nhập & Đăng ký */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
             </Routes>
           </main>
           <Footer />
