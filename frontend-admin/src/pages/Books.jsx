@@ -25,8 +25,8 @@ const Books = () => {
     image: null
   });
 
-  const API_BASE = "https://nhom8-backend-admin.onrender.com/api";
-  const IMAGE_BASE = "https://nhom8-backend-admin.onrender.com/storage/";
+  const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+  const IMAGE_BASE = (import.meta.env.VITE_API_URL || "http://localhost:8000/api").replace('/api','') + '/storage/';
 
   const fetchData = async () => {
     setLoading(true);

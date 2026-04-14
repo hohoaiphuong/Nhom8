@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { Filter } from 'lucide-react';
+import { bookAPI } from '../api/bookAPI';
+import axios from 'axios';
 
 export default function Shop() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -12,55 +14,61 @@ export default function Shop() {
   const [priceRange, setPriceRange] = useState([0, 500000]);
   const [sortBy, setSortBy] = useState('newest');
 
-  const categories = ['Tiểu thuyết', 'Khoa học', 'Lịch sử', 'Tâm lý', 'Kỹ năng', 'Tham khảo'];
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    // Mock data with real book cover images
-    const bookCovers = [
-      { title: 'Đắc Nhân Tâm', author: 'Dale Carnegie', isbn: '9780671808914', category: 'Kỹ năng' },
-      { title: 'Nhà Giả Kim', author: 'Paulo Coelho', isbn: '9780062412584', category: 'Tiểu thuyết' },
-      { title: 'Lược Sử Thời Gian', author: 'Stephen Hawking', isbn: '9780553896718', category: 'Khoa học' },
-      { title: 'Tâm Lý Học Nhân Dân', author: 'Albert Ellis', isbn: '9780879755171', category: 'Tâm lý' },
-      { title: 'Hành Trình Khám Phá', author: 'Charles Darwin', isbn: '9780141199993', category: 'Lịch sử' },
-      { title: 'Suy Nghĩ, Làm Giàu', author: 'Napoleon Hill', isbn: '9781585424337', category: 'Tham khảo' },
-      { title: '1984', author: 'George Orwell', isbn: '9780135288238', category: 'Tiểu thuyết' },
-      { title: 'Công Nghệ Và Tương Lai', author: 'Ray Kurzweil', isbn: '9780670033843', category: 'Khoa học' },
-      { title: 'Bố Già', author: 'Mario Puzo', isbn: '9780451205766', category: 'Tiểu thuyết' },
-      { title: 'Tự Do Tài Chính', author: 'Robert Kiyosaki', isbn: '9780446677455', category: 'Tham khảo' },
-      { title: 'Người Thầy Vĩ Đại', author: 'Robin Sharma', isbn: '9781609940010', category: 'Kỹ năng' },
-      { title: 'Khoa Học Hạnh Phúc', author: 'Martin Seligman', isbn: '9781439190739', category: 'Tâm lý' },
-      { title: 'Jane Eyre', author: 'Charlotte Brontë', isbn: '9780141199825', category: 'Tiểu thuyết' },
-      { title: 'Cuộc Sống Thật Đơn Giản', author: 'Thich Nhat Hanh', isbn: '9781888375404', category: 'Lịch sử' },
-      { title: 'Lập Trình Python', author: 'Guido van Rossum', isbn: '9781449355739', category: 'Khoa học' },
-      { title: 'Kinh Tế Vi Mô', author: 'Paul Krugman', isbn: '9780131882522', category: 'Tham khảo' },
-      { title: 'Trí Tuệ Cảm Xúc', author: 'Daniel Goleman', isbn: '9780553090710', category: 'Tâm lý' },
-      { title: 'Thế Giới Phẳng', author: 'Thomas Friedman', isbn: '9780374292935', category: 'Lịch sử' },
-      { title: 'Tư Duy Nhanh', author: 'Daniel Kahneman', isbn: '9780374533557', category: 'Tâm lý' },
-      { title: 'Sư Tử', author: 'Leo Tolstoy', isbn: '9780199232765', category: 'Tiểu thuyết' },
-      { title: 'Thực Hành Thiền', author: 'Jon Kabat-Zinn', isbn: '9780553340679', category: 'Kỹ năng' },
-      { title: 'Lịch Sử Loài Người', author: 'Yuval Harari', isbn: '9780062316097', category: 'Lịch sử' },
-      { title: 'Tương Lai Của Cơ Thể', author: 'Juan Enriquez', isbn: '9781101566762', category: 'Khoa học' },
-      { title: 'Đầu Tư Thông Minh', author: 'Benjamin Graham', isbn: '9780060555665', category: 'Tham khảo' },
-    ];
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://nhom8-backend-laravel.onrender.com/api'}/categories`);
+        setCategories(res.data.data || res.data);
+      } catch (err) {
+        console.error('Không thể lấy danh mục:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
-    const mockProducts = bookCovers.map((book, i) => ({
-      id: i + 1,
-      title: book.title,
-      author: book.author,
-      price: Math.floor(Math.random() * 150000) + 50000,
-      originalPrice: Math.floor(Math.random() * 200000) + 100000,
-      discount: Math.floor(Math.random() * 25) + 5,
-      category: book.category,
-      image: `https://covers.openlibrary.org/b/isbn/${book.isbn}-M.jpg`,
-      reviews: Math.floor(Math.random() * 250) + 20,
-    }));
+  useEffect(() => {
+    let mounted = true;
+    const isInitial = { current: true };
+    const fetchBooks = async () => {
+      try {
+        if (isInitial.current) setLoading(true);
+        const res = await bookAPI.getBooks(1, 24);
+        if (!mounted) return;
+        
+        const items = res.data.map(b => ({
+          id: b.id,
+          title: b.title,
+          author: b.author || '',
+          price: b.price || 0,
+          originalPrice: b.price || 0,
+          discount: 0,
+          category: b.category_id || 'Khác',
+          // ĐÃ SỬA ĐƯỜNG DẪN ẢNH TẠI ĐÂY: Trỏ thẳng về domain Render
+          image: b.image ? `https://nhom8-backend-laravel.onrender.com/storage/${b.image}` : '',
+          reviews: Math.floor(Math.random() * 200) + 5,
+        }));
+        setProducts(items);
+        isInitial.current = false;
+      } catch (err) {
+        console.error('Không thể lấy sách:', err);
+      } finally {
+        if (mounted && isInitial.current === false) {
+          setLoading(false);
+        } else if (mounted && isInitial.current) {
+          setLoading(false);
+        }
+      }
+    };
 
-    setProducts(mockProducts);
-    setLoading(false);
+    fetchBooks();
+    const interval = setInterval(fetchBooks, 10000); 
+    return () => { mounted = false; clearInterval(interval); };
   }, []);
 
   const filteredProducts = products.filter(product => {
-    if (selectedCategory !== 'all' && product.category !== selectedCategory) return false;
+    if (selectedCategory !== 'all' && product.category.toString() !== selectedCategory) return false;
     if (product.price < priceRange[0] || product.price > priceRange[1]) return false;
     return true;
   });
@@ -96,19 +104,20 @@ export default function Shop() {
                       type="radio"
                       checked={selectedCategory === 'all'}
                       onChange={() => setSelectedCategory('all')}
-                      className="w-4 h-4"
+                      className="w-4 h-4 text-pink-600 focus:ring-pink-500"
                     />
                     <span>Tất cả</span>
                   </label>
+                  
                   {categories.map(cat => (
-                    <label key={cat} className="flex items-center gap-2 cursor-pointer">
+                    <label key={cat.id} className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="radio"
-                        checked={selectedCategory === cat}
-                        onChange={() => setSelectedCategory(cat)}
-                        className="w-4 h-4"
+                        checked={selectedCategory === cat.id.toString()}
+                        onChange={() => setSelectedCategory(cat.id.toString())}
+                        className="w-4 h-4 text-pink-600 focus:ring-pink-500"
                       />
-                      <span>{cat}</span>
+                      <span>{cat.name}</span>
                     </label>
                   ))}
                 </div>
@@ -123,14 +132,14 @@ export default function Shop() {
                       type="number"
                       min="0"
                       value={priceRange[0]}
-                      onChange={(e) => setPriceRange([parseInt(e.target.value), priceRange[1]])}
+                      onChange={(e) => setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])}
                       className="w-1/2 border border-gray-300 rounded px-2 py-1 text-sm"
                       placeholder="Từ"
                     />
                     <input
                       type="number"
                       value={priceRange[1]}
-                      onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+                      onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || 0])}
                       className="w-1/2 border border-gray-300 rounded px-2 py-1 text-sm"
                       placeholder="Đến"
                     />
@@ -144,7 +153,7 @@ export default function Shop() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-2 py-2 text-sm"
+                  className="w-full border border-gray-300 rounded px-2 py-2 text-sm focus:ring-pink-500 focus:border-pink-500"
                 >
                   <option value="newest">Mới nhất</option>
                   <option value="price-low">Giá từ thấp đến cao</option>

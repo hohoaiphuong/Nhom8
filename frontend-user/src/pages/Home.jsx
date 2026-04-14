@@ -1,98 +1,68 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Banner from '../components/Banner';
 import ProductCard from '../components/ProductCard';
+import { bookAPI } from '../api/bookAPI';
+import axios from 'axios'; // 1. Thêm import axios để gọi API danh mục
 
 export default function Home() {
   const [featuredBooks, setFeaturedBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // 2. Thêm state để chứa danh mục động
+  const [categories, setCategories] = useState([]);
+
+  // 3. Gọi API lấy danh mục khi trang vừa load
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://nhom8-backend-laravel.onrender.com/api'}/categories`);
+        setCategories(res.data.data || res.data);
+      } catch (err) {
+        console.error('Không thể lấy danh mục:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
-    // Mock data with real book cover images from Open Library
-    const mockBooks = [
-      {
-        id: 1,
-        title: 'Đắc Nhân Tâm',
-        author: 'Dale Carnegie',
-        price: 89000,
-        originalPrice: 120000,
-        discount: 25,
-        category: 'Phát triển bản thân',
-        image: 'https://covers.openlibrary.org/b/isbn/9780671808914-M.jpg',
-        reviews: 120,
-      },
-      {
-        id: 2,
-        title: 'Nhà Giả Kim',
-        author: 'Paulo Coelho',
-        price: 65000,
-        originalPrice: 85000,
-        discount: 23,
-        category: 'Tiểu thuyết',
-        image: 'https://covers.openlibrary.org/b/isbn/9780062412584-M.jpg',
-        reviews: 89,
-      },
-      {
-        id: 3,
-        title: 'Lược Sử Thời Gian',
-        author: 'Stephen Hawking',
-        price: 75000,
-        category: 'Khoa học',
-        image: 'https://covers.openlibrary.org/b/isbn/9780553896718-M.jpg',
-        reviews: 156,
-      },
-      {
-        id: 4,
-        title: 'Tâm Lý Học Nhân Dân',
-        author: 'Albert Ellis',
-        price: 95000,
-        discount: 15,
-        category: 'Tâm lý',
-        image: 'https://covers.openlibrary.org/b/isbn/9780879755171-M.jpg',
-        reviews: 203,
-      },
-      {
-        id: 5,
-        title: 'Hành Trình Khám Phá',
-        author: 'Charles Darwin',
-        price: 110000,
-        category: 'Lịch sử',
-        image: 'https://covers.openlibrary.org/b/isbn/9780141199993-M.jpg',
-        reviews: 87,
-      },
-      {
-        id: 6,
-        title: 'Suy Nghĩ, Làm Giàu',
-        author: 'Napoleon Hill',
-        price: 85000,
-        discount: 10,
-        category: 'Kinh tế',
-        image: 'https://covers.openlibrary.org/b/isbn/9781585424337-M.jpg',
-        reviews: 145,
-      },
-      {
-        id: 7,
-        title: '1984',
-        author: 'George Orwell',
-        price: 72000,
-        category: 'Tiểu thuyết',
-        image: 'https://covers.openlibrary.org/b/isbn/9780135288238-M.jpg',
-        reviews: 298,
-      },
-      {
-        id: 8,
-        title: 'Công Nghệ Và Tương Lai',
-        author: 'Ray Kurzweil',
-        price: 98000,
-        discount: 20,
-        category: 'Khoa học',
-        image: 'https://covers.openlibrary.org/b/isbn/9780670033843-M.jpg',
-        reviews: 176,
-      },
-    ];
+    let mounted = true;
+    const isInitial = { current: true };
+    const fetchBooks = async () => {
+      try {
+        if (isInitial.current) setLoading(true);
+        const res = await bookAPI.getBooks(1, 8);
+        if (!mounted) return;
+        
+        // 4. Sửa lại dữ liệu sách: Sửa link ảnh trỏ thẳng về Render
+        const homeItems = res.data.slice(0, 8).map(b => ({
+          id: b.id,
+          title: b.title,
+          author: b.author || '',
+          price: b.price || 0,
+          originalPrice: b.price || 0,
+          discount: 0,
+          category: b.category_id || 'Khác',
+          image: b.image ? `https://nhom8-backend-laravel.onrender.com/storage/${b.image}` : '',
+          reviews: Math.floor(Math.random() * 200) + 5,
+        }));
+        
+        setFeaturedBooks(homeItems);
+        isInitial.current = false;
+      } catch (err) {
+        console.error('Không thể lấy sách:', err);
+      } finally {
+        if (mounted && isInitial.current === false) {
+          setLoading(false);
+        } else if (mounted && isInitial.current) {
+          setLoading(false);
+        }
+      }
+    };
 
-    setFeaturedBooks(mockBooks);
-    setLoading(false);
+    fetchBooks();
+    const interval = setInterval(fetchBooks, 10000); // poll every 10s
+    return () => { mounted = false; clearInterval(interval); };
   }, []);
 
   return (
@@ -131,13 +101,14 @@ export default function Home() {
             Danh mục sách
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {['Tiểu thuyết', 'Khoa học', 'Lịch sử', 'Tâm lý', 'Kỹ năng'].map((cat) => (
+            {/* 5. Render danh mục động từ Backend */}
+            {categories.map((cat) => (
               <Link
-                key={cat}
-                to={`/shop?category=${cat}`}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all text-center font-semibold text-gray-700 hover:text-pink-600"
+                key={cat.id}
+                to={`/shop?category=${cat.id}`}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all text-center font-semibold text-gray-700 hover:text-pink-600 flex items-center justify-center min-h-[100px]"
               >
-                {cat}
+                {cat.name}
               </Link>
             ))}
           </div>
