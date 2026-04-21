@@ -19,4 +19,4 @@ src/
 ├── services/           # Quản lý API calls (Axios instances, API endpoints)
 ├── store/              # Quản lý State toàn cục (Redux Toolkit hoặc Zustand)
 ├── utils/              # Các hàm bổ trợ: format tiền tệ, format ngày tháng
-└── App.jsx             # File root component
+└── App.jsx             # File root component 
